@@ -23,9 +23,9 @@ block content
 						+customFormMessageNewStyle('password-compromised')
 							| !{translate('password_compromised_try_again_or_use_known_device_or_reset', {}, [{name: 'a', attrs: {href: 'https://haveibeenpwned.com/passwords', rel: 'noopener noreferrer', target: '_blank'}}, {name: 'a', attrs: {href: '/user/password/reset', target: '_blank'}}])}.
 						.form-group
-							label(for='email') #{translate("email")}
-							input#email.form-control(
-								name='email'
+							label(for='username') #{translate("username")}
+							input#username.form-control(
+								name='username'
 								type=(settings.ldap && settings.ldap.enable) ? 'text' : 'email'
 								required
 								placeholder=(settings.ldap && settings.ldap.enable) ? settings.ldap.placeholder : 'email@example.com'
