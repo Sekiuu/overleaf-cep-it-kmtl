@@ -1,0 +1,129 @@
+\documentclass[12pt,a4paper]{report}
+
+% 1. ตั้งค่าระยะขอบกระดาษ (ซ้าย 1.5 นิ้ว, ขวา 1 นิ้ว, บน 1 นิ้ว, ล่าง 1 นิ้ว)
+\usepackage[left=1.5in, right=1in, top=1in, bottom=1in]{geometry}
+
+% 2. ตั้งค่าระบบภาษาไทย และ XeLaTeX
+\usepackage{fontspec}
+\usepackage{polyglossia}
+\setdefaultlanguage{thai}
+\setotherlanguage{english}
+\XeTeXlinebreaklocale "th"
+\XeTeXlinebreakskip = 0pt plus 1pt
+
+% 3. นำเข้าฟอนต์ TH Sarabun New
+\setmainfont[
+    Path=fonts/,
+    Extension=.ttf,
+    BoldFont=THSarabunNew_Bold,
+    ItalicFont=THSarabunNew_Italic,
+    BoldItalicFont=THSarabunNew_BoldItalic,
+]{THSarabunNew}
+
+\usepackage{setspace}
+
+\begin{document}
+
+% -------------------------
+% หน้าปกนอก (Cover Page)
+% -------------------------
+\begin{titlepage}
+\begin{center}
+    \setstretch{1.5}
+    % ชื่อเรื่องภาษาไทย
+    {\fontsize{20pt}{24pt}\selectfont \textbf{ชื่อเรื่องวิทยานิพนธ์ภาษาไทย}}\\
+    \vspace{0.5cm}
+    % ชื่อเรื่องภาษาอังกฤษ
+    {\fontsize{20pt}{24pt}\selectfont \textbf{THESIS TITLE IN ENGLISH}}\\
+    
+    \vspace{2.5cm}
+    
+    % ชื่อผู้จัดทำ
+    {\fontsize{18pt}{22pt}\selectfont \textbf{ชื่อ นามสกุล}}\\
+    {\fontsize{18pt}{22pt}\selectfont \textbf{NAME SURNAME}}\\
+    
+    \vfill
+    \setstretch{1.15}
+    
+    % ส่วนท้ายของหน้าปก
+    {\fontsize{18pt}{22pt}\selectfont \textbf{วิทยานิพนธ์นี้เป็นส่วนหนึ่งของการศึกษาตามหลักสูตรปริญญาวิทยาศาสตรมหาบัณฑิต}}\\
+    {\fontsize{18pt}{22pt}\selectfont \textbf{สาขาวิชาเทคโนโลยีสารสนเทศ}}\\
+    {\fontsize{18pt}{22pt}\selectfont \textbf{คณะเทคโนโลยีสารสนเทศ}}\\
+    {\fontsize{18pt}{22pt}\selectfont \textbf{สถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบัง}}\\
+    {\fontsize{18pt}{22pt}\selectfont \textbf{พ.ศ. 25XX}}\\
+    
+    \vspace{1.5cm}
+    
+    % รหัสวิทยานิพนธ์
+    {\fontsize{16pt}{20pt}\selectfont \textbf{KMITL-20XX-IT-M-XXX-XXX}}
+\end{center}
+\end{titlepage}
+
+% -------------------------
+% หน้าปกใน (ภาษาอังกฤษตามฟอร์แมต)
+% -------------------------
+\begin{titlepage}
+\begin{center}
+    \setstretch{1.5}
+    {\fontsize{20pt}{24pt}\selectfont \textbf{THESIS TITLE IN ENGLISH}}\\
+    
+    \vspace{2.5cm}
+    
+    {\fontsize{18pt}{22pt}\selectfont \textbf{NAME SURNAME}}\\
+    
+    \vfill
+    \setstretch{1.15}
+    
+    {\fontsize{18pt}{22pt}\selectfont \textbf{A THESIS SUBMITTED IN FULFILLMENT}}\\
+    {\fontsize{18pt}{22pt}\selectfont \textbf{OF THE REQUIREMENT FOR THE DEGREE OF}}\\
+    {\fontsize{18pt}{22pt}\selectfont \textbf{MASTER OF SCIENCE IN INFORMATION TECHNOLOGY}}\\
+    {\fontsize{18pt}{22pt}\selectfont \textbf{SCHOOL OF INFORMATION TECHNOLOGY}}\\
+    {\fontsize{18pt}{22pt}\selectfont \textbf{KING MONGKUT'S INSTITUTE OF TECHNOLOGY LADKRABANG}}\\
+    {\fontsize{18pt}{22pt}\selectfont \textbf{20XX}}\\
+    
+    \vspace{1.5cm}
+    {\fontsize{16pt}{20pt}\selectfont \textbf{KMITL-20XX-IT-M-XXX-XXX}}
+\end{center}
+\end{titlepage}
+
+% -------------------------
+% หน้าลิขสิทธิ์
+% -------------------------
+\clearpage
+\vspace*{5cm}
+\begin{center}
+    {\fontsize{18pt}{22pt}\selectfont \textbf{COPYRIGHT 20XX}}\\
+    \vspace{0.5cm}
+    {\fontsize{18pt}{22pt}\selectfont \textbf{SCHOOL OF INFORMATION TECHNOLOGY}}\\
+    \vspace{0.5cm}
+    {\fontsize{18pt}{22pt}\selectfont \textbf{KING MONGKUT'S INSTITUTE OF TECHNOLOGY LADKRABANG}}
+\end{center}
+\clearpage
+
+% -------------------------
+% บทคัดย่อภาษาไทย
+% -------------------------
+\chapter*{บทคัดย่อ}
+\addcontentsline{toc}{chapter}{บทคัดย่อ}
+พิมพ์เนื้อหาบทคัดย่อภาษาไทยที่นี่... สามารถพิมพ์และตัดคำภาษาไทยได้สมบูรณ์ครับ
+
+% -------------------------
+% บทคัดย่อภาษาอังกฤษ (ABSTRACT)
+% -------------------------
+\chapter*{ABSTRACT}
+\addcontentsline{toc}{chapter}{ABSTRACT}
+Write your abstract in English here...
+
+% -------------------------
+% สารบัญ
+% -------------------------
+\tableofcontents
+\clearpage
+
+% -------------------------
+% บทที่ 1
+% -------------------------
+\chapter{บทนำ}
+ส่วนเนื้อหาของบทที่ 1 เริ่มต้นตรงนี้...
+
+\end{document}
