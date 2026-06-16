@@ -237,6 +237,9 @@ export const UserSchema = new Schema(
       secretEncrypted: { type: String },
     },
     onboardingEmailSentAt: { type: Date },
+    // Timestamp of when the user accepted the Terms of Service. Unset means the
+    // user has not yet accepted them (e.g. on their first login).
+    acceptedTermsOfServiceAt: { type: Date },
     splitTests: Schema.Types.Mixed,
     analyticsId: { type: String },
     completedTutorials: Schema.Types.Mixed,

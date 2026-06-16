@@ -23,6 +23,7 @@ import UserController from './Features/User/UserController.mjs'
 import UserEmailsController from './Features/User/UserEmailsController.mjs'
 import UserPagesController from './Features/User/UserPagesController.mjs'
 import TutorialController from './Features/Tutorial/TutorialController.mjs'
+import TosController from './Features/Tos/TosController.mjs'
 import DocumentController from './Features/Documents/DocumentController.mjs'
 import CompileManager from './Features/Compile/CompileManager.mjs'
 import CompileController from './Features/Compile/CompileController.mjs'
@@ -515,6 +516,12 @@ async function initialize(webRouter, privateApiRouter, publicApiRouter) {
     '/tutorial/:tutorialKey/postpone',
     AuthenticationController.requireLogin(),
     TutorialController.postponeTutorial
+  )
+
+  webRouter.post(
+    '/user/tos/accept',
+    AuthenticationController.requireLogin(),
+    TosController.acceptTos
   )
 
   webRouter.get(

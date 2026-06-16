@@ -22,6 +22,7 @@ import CookieBanner from '@/shared/components/cookie-banner'
 import useThemedPage from '@/shared/hooks/use-themed-page'
 import { UserSettingsProvider } from '@/shared/context/user-settings-context'
 import { TutorialProvider } from '@/shared/context/tutorial-context'
+import TosModal from '@/features/tos/components/tos-modal'
 
 function ProjectListRoot() {
   const { isReady } = useWaitForI18n()
@@ -40,6 +41,7 @@ export function ProjectListRootInner() {
         <SplitTestProvider>
           <TutorialProvider>
             <UserSettingsProvider>
+              <TosModal />
               <ProjectListPageContent />
             </UserSettingsProvider>
           </TutorialProvider>

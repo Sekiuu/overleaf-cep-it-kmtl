@@ -333,6 +333,7 @@ export interface Meta {
   'ol-tags': Tag[]
   'ol-teamInvites': TeamInvite[]
   'ol-thirdPartyIds': ThirdPartyIds
+  'ol-tosAccepted': boolean
   'ol-totalLicenses': number
   'ol-translationIoNotLoaded': string
   'ol-translationLoadErrorMessage': string

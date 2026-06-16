@@ -177,7 +177,7 @@ async function projectListPage(req, res, next) {
 
   const user = await User.findById(
     userId,
-    `email isAdmin emails features alphaProgram betaProgram lastPrimaryEmailCheck lastActive signUpDate ace refProviders${
+    `email isAdmin emails features alphaProgram betaProgram lastPrimaryEmailCheck lastActive signUpDate ace refProviders acceptedTermsOfServiceAt${
       isSaas
         ? ' enrollment writefull completedTutorials aiFeatures aiErrorAssistant labsProgram'
         : ''
@@ -604,6 +604,7 @@ async function projectListPage(req, res, next) {
     recommendedCurrency,
     showInrGeoBanner,
     projectDashboardReact: true, // used in navbar
+    tosAccepted: Boolean(user.acceptedTermsOfServiceAt),
     groupSsoSetupSuccess,
     joinedGroupName,
     viaDomainCapture,
