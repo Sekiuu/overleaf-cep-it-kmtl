@@ -475,6 +475,16 @@ module.exports = {
     ','
   ),
 
+  // Restrict which email domains can be invited to projects as collaborators
+  // (comma-separated). Set to an empty string to allow any domain.
+  allowedInviteDomains: (process.env.OVERLEAF_ALLOWED_INVITE_DOMAINS === undefined
+    ? 'kmitl.ac.th,it.kmitl.ac.th'
+    : process.env.OVERLEAF_ALLOWED_INVITE_DOMAINS
+  )
+    .split(',')
+    .map(d => d.trim().replace(/^@/, '').toLowerCase())
+    .filter(Boolean),
+
   // Google Drive backup module (services/web/modules/google-drive-backup).
   // Periodically mirrors each linked user's projects (source files + output.pdf)
   // into an "Overleaf ITKMITL" folder on their own Google Drive.

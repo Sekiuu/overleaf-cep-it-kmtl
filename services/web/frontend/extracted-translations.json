@@ -1028,6 +1028,7 @@
   "invite": "",
   "invite_expired": "",
   "invite_group_members": "",
+  "invite_invalid_email_domain": "",
   "invite_more_collabs": "",
   "invite_more_members": "",
   "invite_not_accepted": "",

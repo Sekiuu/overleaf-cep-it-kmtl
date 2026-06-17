@@ -16,6 +16,9 @@ function ErrorMessage({ error }: Pick<ShareProjectContextValue, 'error'>) {
     case 'invalid_email':
       return <>{t('invalid_email')}</>
 
+    case 'invalid_email_domain':
+      return <>{t('invite_invalid_email_domain')}</>
+
     case 'too_many_requests':
       return <>{t('too_many_requests')}</>
 
