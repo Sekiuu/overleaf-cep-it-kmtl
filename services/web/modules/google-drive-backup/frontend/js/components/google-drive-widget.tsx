@@ -88,19 +88,40 @@ export default function GoogleDriveWidget() {
     setProcessing(true)
     setError('')
     setMessage('')
+    const previousBackupAt = status?.lastBackupAt || null
     try {
-      const result = await postJSON('/google-drive/backup-now')
-      if (result?.status === 'insufficient-space') {
-        setError(t('google_drive_insufficient_space'))
-      } else {
-        setMessage(t('google_drive_backup_started'))
-      }
+      // The backup runs in the background; this returns immediately (202).
+      await postJSON('/google-drive/backup-now')
+      setMessage(t('google_drive_backup_started'))
+      // Poll for the result (lastBackupAt changes when the run finishes).
+      let attempts = 0
+      const poll = setInterval(async () => {
+        attempts += 1
+        try {
+          const data: BackupStatus = await getJSON('/google-drive/status')
+          if (data.lastBackupAt && data.lastBackupAt !== previousBackupAt) {
+            clearInterval(poll)
+            setStatus(data)
+            setProcessing(false)
+            if (data.lastBackupStatus === 'insufficient-space') {
+              setError(t('google_drive_insufficient_space'))
+            }
+          }
+        } catch {
+          /* keep polling */
+        }
+        if (attempts >= 40) {
+          // Give up polling after ~10 minutes; the run may still finish.
+          clearInterval(poll)
+          setProcessing(false)
+        }
+      }, 15000)
+      return
     } catch (err) {
       setError(t('generic_something_went_wrong'))
-    } finally {
       setProcessing(false)
     }
-  }, [t])
+  }, [t, status?.lastBackupAt])
 
   // Feature turned off at runtime: render nothing.
   if (!enabled) {

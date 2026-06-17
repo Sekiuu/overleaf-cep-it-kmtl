@@ -136,24 +136,43 @@ async function status(req, res) {
   }
 }
 
+// Users with a manual backup currently in flight, so repeated clicks don't
+// queue up overlapping runs.
+const manualBackupsInFlight = new Set()
+
 /**
  * POST /google-drive/backup-now
- * Manually trigger a backup of all the current user's projects (for testing and
- * on-demand use). Runs synchronously and returns a summary.
+ * Manually trigger a backup of all the current user's projects. Backing up
+ * compiles each project on demand and uploads many files, which can take far
+ * longer than an HTTP request should, so this runs in the background and
+ * returns immediately. The outcome is recorded on the user and surfaced via
+ * GET /google-drive/status (lastBackupStatus).
  */
 async function backupNow(req, res) {
   const userId = SessionManager.getLoggedInUserId(req.session)
-  try {
-    const result =
-      await GoogleDriveBackupManager.backupAllProjectsForUser(userId)
-    res.json(result)
-  } catch (err) {
-    if (err instanceof GoogleDriveBackupManager.GoogleDriveNotLinkedError) {
-      return res.status(400).json({ error: 'not_linked' })
-    }
-    logger.err({ err, userId }, 'google-drive-backup: manual backup failed')
-    res.status(500).json({ error: 'internal' })
+
+  const linked = await GoogleDriveTokenStore.isLinked(userId)
+  if (!linked) {
+    return res.status(400).json({ error: 'not_linked' })
   }
+
+  const key = userId.toString()
+  if (manualBackupsInFlight.has(key)) {
+    return res.status(202).json({ started: false, alreadyRunning: true })
+  }
+
+  manualBackupsInFlight.add(key)
+  // Intentionally not awaited — runs after the response is sent.
+  GoogleDriveBackupManager.backupAllProjectsForUser(userId)
+    .then(({ status }) =>
+      logger.info({ userId, status }, 'google-drive-backup: manual backup done')
+    )
+    .catch(err =>
+      logger.error({ err, userId }, 'google-drive-backup: manual backup failed')
+    )
+    .finally(() => manualBackupsInFlight.delete(key))
+
+  res.status(202).json({ started: true })
 }
 
 export default {
