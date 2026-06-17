@@ -34,9 +34,11 @@ describe('<NewProjectButton />', function () {
     })
 
     it('shows the correct dropdown menu', function () {
+      // Blank and Example project entries are intentionally hidden in this fork
+      expect(screen.queryByText('Blank project')).to.be.null
+      expect(screen.queryByText('Example project')).to.be.null
+
       // static menu
-      screen.getByText('Blank project')
-      screen.getByText('Example project')
       screen.getByText('Upload project')
       screen.getByText('Import from GitHub')
 
@@ -48,28 +50,15 @@ describe('<NewProjectButton />', function () {
       screen.getByText('View All')
     })
 
-    it('open new project modal when clicking at Blank project', function () {
-      fireEvent.click(screen.getByRole('menuitem', { name: 'Blank project' }))
+    it('open upload project modal when clicking at Upload project', function () {
+      fireEvent.click(screen.getByRole('menuitem', { name: 'Upload project' }))
 
-      screen.getByLabelText(/Project name/i)
+      screen.getByRole('dialog')
     })
 
-    it('open new project modal when clicking at Example project', function () {
-      fireEvent.click(screen.getByRole('menuitem', { name: 'Example project' }))
-
-      screen.getByLabelText(/Project name/i)
-    })
-
-    it('close the new project modal when clicking at the top right "x" button', function () {
-      fireEvent.click(screen.getByRole('menuitem', { name: 'Blank project' }))
+    it('close the upload project modal when clicking at the top right "x" button', function () {
+      fireEvent.click(screen.getByRole('menuitem', { name: 'Upload project' }))
       fireEvent.click(screen.getByRole('button', { name: 'Close dialog' }))
-
-      expect(screen.queryByRole('dialog')).to.be.null
-    })
-
-    it('close the new project modal when clicking at the Cancel button', function () {
-      fireEvent.click(screen.getByRole('menuitem', { name: 'Blank project' }))
-      fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
 
       expect(screen.queryByRole('dialog')).to.be.null
     })
@@ -106,9 +95,11 @@ describe('<NewProjectButton />', function () {
       })
 
       fireEvent.click(newProjectButton)
+      // Blank and Example project entries are intentionally hidden in this fork
+      expect(screen.queryByText('Blank project')).to.be.null
+      expect(screen.queryByText('Example project')).to.be.null
+
       // static menu
-      screen.getByText('Blank project')
-      screen.getByText('Example project')
       screen.getByText('Upload project')
       screen.getByText('Import from GitHub')
 

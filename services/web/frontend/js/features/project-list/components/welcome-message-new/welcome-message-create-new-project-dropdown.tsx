@@ -61,6 +61,7 @@ function WelcomeMessageCreateNewProjectDropdown({
 }: WelcomeMessageCreateNewProjectDropdownProps) {
   const { t } = useTranslation()
   const portalTemplates = getMeta('ol-portalTemplates') || []
+  const { templateLinks } = getMeta('ol-ExposedSettings')
   const docxImportEnabled =
     useFeatureFlag('import-docx') &&
     getMeta('ol-ExposedSettings').enablePandocConversions
@@ -102,6 +103,19 @@ function WelcomeMessageCreateNewProjectDropdown({
     []
   )
 
+  const handleTemplateLinkClick = useCallback(
+    (e: React.MouseEvent, dropdownMenuEvent: string) => {
+      // prevent firing the main dropdown onClick event
+      e.stopPropagation()
+
+      sendMB('welcome-page-create-first-project-click', {
+        dropdownMenu: dropdownMenuEvent,
+        dropdownOpen: true,
+      })
+    },
+    []
+  )
+
   return (
     <Dropdown className="welcome-message-card-item">
       <DropdownToggle
@@ -109,28 +123,6 @@ function WelcomeMessageCreateNewProjectDropdown({
         id="create-new-project-dropdown-toggle-btn"
       />
       <DropdownMenu flip={false} className="create-new-project-dropdown">
-        <li role="none">
-          <DropdownItem
-            as="button"
-            onClick={e =>
-              handleDropdownItemClick(e, 'blank_project', 'blank-project')
-            }
-            tabIndex={-1}
-          >
-            {t('blank_project')}
-          </DropdownItem>
-        </li>
-        <li role="none">
-          <DropdownItem
-            as="button"
-            onClick={e =>
-              handleDropdownItemClick(e, 'example_project', 'example-project')
-            }
-            tabIndex={-1}
-          >
-            {t('example_project')}
-          </DropdownItem>
-        </li>
         <li role="none">
           <DropdownItem
             as="button"
@@ -204,6 +196,25 @@ function WelcomeMessageCreateNewProjectDropdown({
             ))}
           </>
         ) : null}
+        {templateLinks && templateLinks.length > 0 && (
+          <>
+            <DropdownDivider />
+            <DropdownHeader aria-hidden="true">{t('templates')}</DropdownHeader>
+            {templateLinks.map((templateLink, index) => (
+              <li role="none" key={`welcome-template-${index}`}>
+                <DropdownItem
+                  href={templateLink.url}
+                  onClick={e => handleTemplateLinkClick(e, templateLink.name)}
+                  aria-label={`${templateLink.name} ${t('template')}`}
+                >
+                  {templateLink.name === 'view_all'
+                    ? t('view_all')
+                    : templateLink.name}
+                </DropdownItem>
+              </li>
+            ))}
+          </>
+        )}
       </DropdownMenu>
     </Dropdown>
   )
