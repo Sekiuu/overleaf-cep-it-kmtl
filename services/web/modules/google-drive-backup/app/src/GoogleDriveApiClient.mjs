@@ -1,6 +1,30 @@
 import Settings from '@overleaf/settings'
 import OError from '@overleaf/o-error'
-import { fetchJson } from '@overleaf/fetch-utils'
+import { fetchJson, RequestFailedError } from '@overleaf/fetch-utils'
+
+/**
+ * Turn a fetch-utils RequestFailedError into an error that carries the HTTP
+ * status and Google's error body, so failures are diagnosable instead of a
+ * bare "request failed".
+ */
+function _describeError(err, operation, url) {
+  if (err instanceof RequestFailedError) {
+    const status = err.response?.status
+    let detail = err.body
+    try {
+      // Google error bodies are JSON: { error: { message, ... } }.
+      detail = JSON.parse(err.body)?.error?.message || err.body
+    } catch {
+      // keep raw body
+    }
+    return new OError(`${operation} failed (HTTP ${status}): ${detail}`, {
+      status,
+      url,
+      operation,
+    })
+  }
+  return OError.tag(err, `${operation} failed`, { url })
+}
 
 /**
  * Thin client over the Google OAuth2 + Drive v3 REST APIs.
@@ -66,12 +90,16 @@ function getAuthorizationUrl(state) {
 }
 
 async function _postForm(body) {
-  return await fetchJson(OAUTH_TOKEN_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams(body).toString(),
-    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-  })
+  try {
+    return await fetchJson(OAUTH_TOKEN_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams(body).toString(),
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    })
+  } catch (err) {
+    throw _describeError(err, 'Google OAuth token request', OAUTH_TOKEN_URL)
+  }
 }
 
 /**
@@ -147,13 +175,21 @@ async function _driveRequest(accessToken, path, opts = {}) {
     Authorization: `Bearer ${accessToken}`,
     ...(opts.headers || {}),
   }
-  return await fetchJson(url, {
-    method: opts.method || 'GET',
-    headers,
-    body: opts.body,
-    json: opts.json,
-    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-  })
+  try {
+    return await fetchJson(url, {
+      method: opts.method || 'GET',
+      headers,
+      body: opts.body,
+      json: opts.json,
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    })
+  } catch (err) {
+    throw _describeError(
+      err,
+      `Google Drive API ${opts.method || 'GET'} ${path.split('?')[0]}`,
+      url
+    )
+  }
 }
 
 /**
