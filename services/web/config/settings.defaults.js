@@ -475,6 +475,23 @@ module.exports = {
     ','
   ),
 
+  // Google Drive backup module (services/web/modules/google-drive-backup).
+  // Periodically mirrors each linked user's projects (source files + output.pdf)
+  // into an "Overleaf ITKMITL" folder on their own Google Drive.
+  googleDriveBackup: {
+    enabled: process.env.GOOGLE_DRIVE_BACKUP_ENABLED === 'true',
+    // Set to 'false' on additional web instances so only one runs the scheduler.
+    schedulerEnabled: process.env.GOOGLE_DRIVE_BACKUP_SCHEDULER !== 'false',
+    clientId: process.env.GOOGLE_DRIVE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_DRIVE_CLIENT_SECRET,
+    redirectUri: process.env.GOOGLE_DRIVE_REDIRECT_URI,
+    intervalMs:
+      parseInt(process.env.GOOGLE_DRIVE_BACKUP_INTERVAL_MS, 10) ||
+      24 * 60 * 60 * 1000,
+    minFreeBytes:
+      parseInt(process.env.GOOGLE_DRIVE_MIN_FREE_BYTES, 10) || 1073741824,
+  },
+
   // i18n
   // ------
   //
@@ -1066,7 +1083,16 @@ module.exports = {
     mainEditorLayoutPanels: [],
     langFeedbackLinkingWidgets: [],
     labsExperiments: [],
-    integrationLinkingWidgets: [],
+    integrationLinkingWidgets: [
+      ...(process.env.GOOGLE_DRIVE_BACKUP_ENABLED === 'true'
+        ? [
+            Path.resolve(
+              __dirname,
+              '../modules/google-drive-backup/frontend/js/components/google-drive-widget'
+            ),
+          ]
+        : []),
+    ],
     referenceLinkingWidgets: [
       Path.resolve(
         __dirname,
@@ -1174,6 +1200,7 @@ module.exports = {
     'template-gallery',
     'git-bridge',
     'zotero',
+    'google-drive-backup',
   ],
   viewIncludes: {},
 
