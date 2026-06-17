@@ -4,7 +4,7 @@ import { getJSON, postJSON } from '@/infrastructure/fetch-json'
 import getMeta from '@/utils/meta'
 import OLButton from '@/shared/components/ol/ol-button'
 import OLNotification from '@/shared/components/ol/ol-notification'
-import MaterialIcon from '@/shared/components/material-icon'
+import GoogleDriveLogo from '@/shared/svgs/google-drive-logo'
 
 type BackupStatus = {
   linked: boolean
@@ -130,8 +130,8 @@ export default function GoogleDriveWidget() {
 
   return (
     <div className="settings-widget-container">
-      <div>
-        <MaterialIcon type="backup" size="2x" />
+      <div className="linking-icon-fixed-position">
+        <GoogleDriveLogo />
       </div>
       <div className="description-container">
         <div className="title-row">
