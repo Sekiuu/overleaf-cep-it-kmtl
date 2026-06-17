@@ -4,6 +4,7 @@ import logger from '@overleaf/logger'
 import Settings from '@overleaf/settings'
 import OError from '@overleaf/o-error'
 import ProjectGetter from '../../../../app/src/Features/Project/ProjectGetter.mjs'
+import ProjectHelper from '../../../../app/src/Features/Project/ProjectHelper.mjs'
 import ProjectEntityHandler from '../../../../app/src/Features/Project/ProjectEntityHandler.mjs'
 import HistoryManager from '../../../../app/src/Features/History/HistoryManager.mjs'
 import CompileManager from '../../../../app/src/Features/Compile/CompileManager.mjs'
@@ -285,9 +286,14 @@ async function backupAllProjectsForUser(userId) {
   const projects = await ProjectGetter.promises.findAllUsersProjects(userId, {
     _id: 1,
     name: 1,
+    archived: 1,
+    trashed: 1,
   })
-  // findAllUsersProjects returns { owned, readAndWrite, ... }; only back up owned.
-  const owned = projects?.owned || []
+  // findAllUsersProjects returns { owned, readAndWrite, ... }; only back up owned
+  // projects that are still active (skip the user's archived/trashed ones).
+  const owned = (projects?.owned || []).filter(
+    project => !ProjectHelper.isArchivedOrTrashed(project, userId)
+  )
   // Resolve folder names up front so duplicate names are disambiguated and the
   // sibling lookup isn't repeated per project.
   const folderNames = _buildFolderNameMap(owned)

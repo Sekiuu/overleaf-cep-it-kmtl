@@ -60,6 +60,14 @@ describe('GoogleDriveBackupManager', function () {
       default: ctx.ProjectGetter,
     }))
 
+    ctx.ProjectHelper = {
+      // Active by default; individual tests override per project.
+      isArchivedOrTrashed: sinon.stub().returns(false),
+    }
+    vi.doMock('../../../../../app/src/Features/Project/ProjectHelper.mjs', () => ({
+      default: ctx.ProjectHelper,
+    }))
+
     ctx.ProjectEntityHandler = {
       promises: {
         getAllDocs: sinon
@@ -189,6 +197,48 @@ describe('GoogleDriveBackupManager', function () {
       await expect(
         ctx.GoogleDriveBackupManager.backupProject(ctx.userId, ctx.projectId)
       ).to.be.rejectedWith(/not linked/)
+    })
+  })
+
+  describe('backupAllProjectsForUser', function () {
+    it('skips the user\'s archived or trashed projects', async function (ctx) {
+      ctx.ProjectGetter.promises.findAllUsersProjects.resolves({
+        owned: [
+          { _id: 'active-1', name: 'Active', archived: [], trashed: [] },
+          {
+            _id: 'archived-1',
+            name: 'Archived',
+            archived: [ctx.userId],
+            trashed: [],
+          },
+        ],
+      })
+      ctx.ProjectHelper.isArchivedOrTrashed.callsFake(
+        project => project._id === 'archived-1'
+      )
+
+      const { results } =
+        await ctx.GoogleDriveBackupManager.backupAllProjectsForUser(ctx.userId)
+
+      // Only the active project is backed up.
+      expect(results).to.have.length(1)
+      expect(results[0].projectId).to.equal('active-1')
+      expect(ctx.ProjectGetter.promises.getProject.calledOnce).to.be.true
+      expect(ctx.GoogleDriveTokenStore.recordBackupResult.calledOnce).to.be.true
+    })
+
+    it('backs up nothing when every owned project is archived or trashed', async function (ctx) {
+      ctx.ProjectGetter.promises.findAllUsersProjects.resolves({
+        owned: [{ _id: 'archived-1', name: 'Archived' }],
+      })
+      ctx.ProjectHelper.isArchivedOrTrashed.returns(true)
+
+      const { status, results } =
+        await ctx.GoogleDriveBackupManager.backupAllProjectsForUser(ctx.userId)
+
+      expect(results).to.have.length(0)
+      expect(status).to.equal('success')
+      expect(ctx.ProjectGetter.promises.getProject.called).to.be.false
     })
   })
 })
