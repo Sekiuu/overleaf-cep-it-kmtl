@@ -130,39 +130,49 @@ async function _backupOutputPdf(
   ownerId,
   projectFolderId
 ) {
-  const result = await CompileManager.promises.compile(projectId, ownerId, {
-    isAutoCompile: false,
-  })
-  if (result.status !== 'success') {
-    logger.info(
-      { projectId, status: result.status },
-      'google-drive-backup: skipping output.pdf, compile not successful'
+  // The PDF is best-effort: a project that fails to compile (or a CLSI hiccup)
+  // must not fail the whole backup, since the source files were already saved.
+  try {
+    const result = await CompileManager.promises.compile(projectId, ownerId, {
+      isAutoCompile: false,
+    })
+    if (result.status !== 'success') {
+      logger.info(
+        { projectId, status: result.status },
+        'google-drive-backup: skipping output.pdf, compile not successful'
+      )
+      return false
+    }
+    const hasPdf = (result.outputFiles || []).some(f => f.path === 'output.pdf')
+    if (!hasPdf) {
+      logger.info(
+        { projectId },
+        'google-drive-backup: compile produced no output.pdf'
+      )
+      return false
+    }
+    const stream = await ClsiManager.promises.getOutputFileStream(
+      projectId,
+      ownerId,
+      result.clsiServerId,
+      result.buildId,
+      'output.pdf'
+    )
+    const content = await streamToBuffer(stream)
+    await GoogleDriveApiClient.upsertFile(accessToken, {
+      name: 'output.pdf',
+      parentId: projectFolderId,
+      mimeType: 'application/pdf',
+      content,
+    })
+    return true
+  } catch (err) {
+    logger.warn(
+      { err, projectId },
+      'google-drive-backup: failed to compile/upload output.pdf, backing up sources only'
     )
     return false
   }
-  const hasPdf = (result.outputFiles || []).some(f => f.path === 'output.pdf')
-  if (!hasPdf) {
-    logger.info(
-      { projectId },
-      'google-drive-backup: compile produced no output.pdf'
-    )
-    return false
-  }
-  const stream = await ClsiManager.promises.getOutputFileStream(
-    projectId,
-    ownerId,
-    result.clsiServerId,
-    result.buildId,
-    'output.pdf'
-  )
-  const content = await streamToBuffer(stream)
-  await GoogleDriveApiClient.upsertFile(accessToken, {
-    name: 'output.pdf',
-    parentId: projectFolderId,
-    mimeType: 'application/pdf',
-    content,
-  })
-  return true
 }
 
 /**
@@ -251,7 +261,11 @@ async function backupAllProjectsForUser(userId) {
         { err, userId, projectId: project._id },
         'google-drive-backup: failed to back up project'
       )
-      results.push({ projectId: project._id, status: 'error' })
+      results.push({
+        projectId: project._id,
+        status: 'error',
+        error: err.message,
+      })
     }
   }
 
