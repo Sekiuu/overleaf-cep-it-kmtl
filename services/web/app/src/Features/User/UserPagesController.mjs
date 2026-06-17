@@ -174,6 +174,7 @@ async function settingsPage(req, res) {
     currentManagedUserAdminEmail,
     gitBridgeEnabled: Settings.enableGitBridge,
     googleDriveBackupEnabled: Boolean(Settings.googleDriveBackup?.enabled),
+    googleDriveBackupDomains: Settings.googleDriveBackup?.allowedDomains || [],
     isSaas: Features.hasFeature('saas'),
     memberOfSSOEnabledGroups,
     capabilities: [...req.capabilitySet],

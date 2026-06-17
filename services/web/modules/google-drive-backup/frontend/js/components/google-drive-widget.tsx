@@ -8,6 +8,7 @@ import MaterialIcon from '@/shared/components/material-icon'
 
 type BackupStatus = {
   linked: boolean
+  email: string | null
   linkedAt: string | null
   lastBackupAt: string | null
   lastBackupStatus: string | null
@@ -24,6 +25,12 @@ type BackupStatus = {
  */
 export default function GoogleDriveWidget() {
   const { t } = useTranslation()
+  // The widget is always bundled (the module import list is fixed at build
+  // time); gate its visibility on the runtime feature flag instead.
+  const enabled = getMeta('ol-googleDriveBackupEnabled')
+  const domains = getMeta('ol-googleDriveBackupDomains') || []
+  // Human-readable list, e.g. "kmitl.ac.th or it.kmitl.ac.th".
+  const domain = domains.join(' or ')
   const user = getMeta('ol-user')
   const refProviders = (user?.refProviders || {}) as Record<string, boolean>
   const [isLinked, setIsLinked] = useState(Boolean(refProviders.googleDrive))
@@ -33,6 +40,14 @@ export default function GoogleDriveWidget() {
   const [message, setMessage] = useState('')
 
   useEffect(() => {
+    if (!enabled) return
+    // Surface the "wrong domain" error after a rejected OAuth callback.
+    if (
+      new URLSearchParams(window.location.search).get('google_drive_error') ===
+      'domain'
+    ) {
+      setError(t('google_drive_wrong_domain', { domain }))
+    }
     let cancelled = false
     getJSON('/google-drive/status')
       .then((data: BackupStatus) => {
@@ -47,7 +62,7 @@ export default function GoogleDriveWidget() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [enabled])
 
   const handleLink = useCallback(() => {
     // Full-page navigation into the OAuth consent flow.
@@ -87,6 +102,11 @@ export default function GoogleDriveWidget() {
     }
   }, [t])
 
+  // Feature turned off at runtime: render nothing.
+  if (!enabled) {
+    return null
+  }
+
   return (
     <div className="settings-widget-container">
       <div>
@@ -97,8 +117,18 @@ export default function GoogleDriveWidget() {
           <h4>{t('google_drive_backup')}</h4>
         </div>
         <p className="small">{t('google_drive_backup_description')}</p>
+        {domain && (
+          <p className="small text-muted">
+            {t('google_drive_domain_required', { domain })}
+          </p>
+        )}
         {error && <OLNotification type="error" content={error} />}
         {message && <OLNotification type="success" content={message} />}
+        {isLinked && status?.email && (
+          <p className="small text-muted">
+            {t('google_drive_linked_account', { email: status.email })}
+          </p>
+        )}
         {isLinked && status?.lastBackupAt && (
           <p className="small text-muted">
             {t('google_drive_last_backup', {

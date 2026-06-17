@@ -1,5 +1,6 @@
 import crypto from 'node:crypto'
 import logger from '@overleaf/logger'
+import Settings from '@overleaf/settings'
 import SessionManager from '../../../../app/src/Features/Authentication/SessionManager.mjs'
 import UserAuditLogHandler from '../../../../app/src/Features/User/UserAuditLogHandler.mjs'
 import GoogleDriveApiClient from './GoogleDriveApiClient.mjs'
@@ -7,6 +8,24 @@ import GoogleDriveTokenStore from './GoogleDriveTokenStore.mjs'
 import GoogleDriveBackupManager from './GoogleDriveBackupManager.mjs'
 
 const SETTINGS_REDIRECT = '/user/settings#project-sync'
+const DOMAIN_ERROR_REDIRECT =
+  '/user/settings?google_drive_error=domain#project-sync'
+
+/**
+ * Check that the linked Google account belongs to one of the allowed Workspace
+ * domains. When none are configured, any account is accepted.
+ */
+function _isDomainAllowed(email, hostedDomain) {
+  const allowedDomains = Settings.googleDriveBackup?.allowedDomains || []
+  if (allowedDomains.length === 0) {
+    return true
+  }
+  const hd = hostedDomain?.toLowerCase()
+  const emailDomain = (email || '').split('@')[1]?.toLowerCase()
+  return allowedDomains.some(
+    domain => domain === hd || domain === emailDomain
+  )
+}
 
 /**
  * GET /google-drive/link
@@ -46,7 +65,7 @@ async function oauthCallback(req, res) {
   }
 
   try {
-    const { refreshToken } =
+    const { refreshToken, email, hostedDomain } =
       await GoogleDriveApiClient.exchangeCodeForTokens(code)
     if (!refreshToken) {
       // Google only returns a refresh token when access_type=offline and the
@@ -57,7 +76,18 @@ async function oauthCallback(req, res) {
       )
       return res.redirect(SETTINGS_REDIRECT)
     }
-    await GoogleDriveTokenStore.storeRefreshToken(userId, refreshToken)
+    // Enforce the institutional Workspace domain (e.g. kmitl.ac.th).
+    if (!_isDomainAllowed(email, hostedDomain)) {
+      logger.warn(
+        {
+          userId,
+          allowedDomains: Settings.googleDriveBackup?.allowedDomains,
+        },
+        'google-drive-backup: linked Google account is outside the allowed domains'
+      )
+      return res.redirect(DOMAIN_ERROR_REDIRECT)
+    }
+    await GoogleDriveTokenStore.storeRefreshToken(userId, refreshToken, email)
     UserAuditLogHandler.addEntryInBackground(
       userId,
       'link-google-drive',

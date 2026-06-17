@@ -18,6 +18,9 @@ const DRIVE_UPLOAD_API = 'https://www.googleapis.com/upload/drive/v3'
 
 export const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file'
 export const FOLDER_MIME_TYPE = 'application/vnd.google-apps.folder'
+// Request openid + email alongside drive.file so the token response includes an
+// id_token we can use to verify which Google account was linked.
+const OAUTH_SCOPES = `openid email ${DRIVE_SCOPE}`
 
 const REQUEST_TIMEOUT_MS = 60 * 1000
 
@@ -44,10 +47,18 @@ function getAuthorizationUrl(state) {
   url.searchParams.set('client_id', cfg.clientId)
   url.searchParams.set('redirect_uri', cfg.redirectUri)
   url.searchParams.set('response_type', 'code')
-  url.searchParams.set('scope', DRIVE_SCOPE)
+  url.searchParams.set('scope', OAUTH_SCOPES)
   url.searchParams.set('access_type', 'offline')
   url.searchParams.set('prompt', 'consent')
   url.searchParams.set('include_granted_scopes', 'true')
+  // Restrict the account chooser to the institutional Workspace domain. Google's
+  // `hd` accepts only a single domain, so this is only a UX hint and only when
+  // exactly one domain is allowed. The domain is always verified server-side
+  // after the exchange (and `hd` can be tampered with anyway).
+  const allowedDomains = cfg.allowedDomains || []
+  if (allowedDomains.length === 1) {
+    url.searchParams.set('hd', allowedDomains[0])
+  }
   if (state) {
     url.searchParams.set('state', state)
   }
@@ -64,8 +75,29 @@ async function _postForm(body) {
 }
 
 /**
+ * Decode the payload of a Google id_token (a JWT). The token is delivered
+ * directly from Google's token endpoint over TLS in a server-to-server
+ * exchange, so signature verification is not required to trust the claims
+ * (per Google's OpenID Connect guidance). Returns {} on any parse failure.
+ */
+function _decodeIdToken(idToken) {
+  if (!idToken || typeof idToken !== 'string') {
+    return {}
+  }
+  const parts = idToken.split('.')
+  if (parts.length < 2) {
+    return {}
+  }
+  try {
+    return JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf8'))
+  } catch {
+    return {}
+  }
+}
+
+/**
  * Exchange an authorization code (from the OAuth callback) for tokens.
- * Returns { accessToken, refreshToken, expiresIn }.
+ * Returns { accessToken, refreshToken, expiresIn, email, hostedDomain }.
  */
 async function exchangeCodeForTokens(code) {
   const cfg = _config()
@@ -77,10 +109,13 @@ async function exchangeCodeForTokens(code) {
       redirect_uri: cfg.redirectUri,
       grant_type: 'authorization_code',
     })
+    const claims = _decodeIdToken(data.id_token)
     return {
       accessToken: data.access_token,
       refreshToken: data.refresh_token,
       expiresIn: data.expires_in,
+      email: claims.email,
+      hostedDomain: claims.hd,
     }
   } catch (err) {
     throw OError.tag(err, 'failed to exchange Google authorization code')

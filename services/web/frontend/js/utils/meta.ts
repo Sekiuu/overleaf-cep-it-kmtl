@@ -137,6 +137,7 @@ export interface Meta {
   'ol-gitBridgePublicBaseUrl': string
   'ol-github': { enabled: boolean; error: boolean }
   'ol-googleDriveBackupEnabled': boolean
+  'ol-googleDriveBackupDomains': string[]
   'ol-groupAuditLogs': []
   'ol-groupDomains': []
   'ol-groupId': string

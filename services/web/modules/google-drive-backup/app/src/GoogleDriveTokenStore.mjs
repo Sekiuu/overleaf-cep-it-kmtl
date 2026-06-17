@@ -10,6 +10,7 @@ import { AccessTokenEncryptor } from './AccessTokenEncryptorHelper.mjs'
  * Stored shape:
  *   refProviders.googleDrive = {
  *     refreshTokenEncrypted: string,
+ *     email?: string,          // the linked Google account's email
  *     linkedAt: Date,
  *     lastBackupAt?: Date,
  *     lastBackupStatus?: string,
@@ -18,8 +19,9 @@ import { AccessTokenEncryptor } from './AccessTokenEncryptorHelper.mjs'
 
 /**
  * Store (or replace) the encrypted refresh token, marking the account linked.
+ * `email` is the verified Google account email (for display).
  */
-async function storeRefreshToken(userId, refreshToken) {
+async function storeRefreshToken(userId, refreshToken, email = null) {
   const refreshTokenEncrypted = await AccessTokenEncryptor.promises.encryptJson({
     refreshToken,
   })
@@ -28,6 +30,7 @@ async function storeRefreshToken(userId, refreshToken) {
     {
       $set: {
         'refProviders.googleDrive.refreshTokenEncrypted': refreshTokenEncrypted,
+        'refProviders.googleDrive.email': email,
         'refProviders.googleDrive.linkedAt': new Date(),
       },
     }
@@ -70,6 +73,7 @@ async function getStatus(userId) {
   const gd = user?.refProviders?.googleDrive
   return {
     linked: Boolean(gd?.refreshTokenEncrypted),
+    email: gd?.email || null,
     linkedAt: gd?.linkedAt || null,
     lastBackupAt: gd?.lastBackupAt || null,
     lastBackupStatus: gd?.lastBackupStatus || null,

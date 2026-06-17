@@ -485,6 +485,15 @@ module.exports = {
     clientId: process.env.GOOGLE_DRIVE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_DRIVE_CLIENT_SECRET,
     redirectUri: process.env.GOOGLE_DRIVE_REDIRECT_URI,
+    // Only allow linking Google accounts in these Workspace domains
+    // (comma-separated). Set to an empty string to allow any Google account.
+    allowedDomains: (process.env.GOOGLE_DRIVE_ALLOWED_DOMAINS === undefined
+      ? 'kmitl.ac.th,it.kmitl.ac.th'
+      : process.env.GOOGLE_DRIVE_ALLOWED_DOMAINS
+    )
+      .split(',')
+      .map(d => d.trim().replace(/^@/, '').toLowerCase())
+      .filter(Boolean),
     intervalMs:
       parseInt(process.env.GOOGLE_DRIVE_BACKUP_INTERVAL_MS, 10) ||
       24 * 60 * 60 * 1000,
@@ -1084,14 +1093,14 @@ module.exports = {
     langFeedbackLinkingWidgets: [],
     labsExperiments: [],
     integrationLinkingWidgets: [
-      ...(process.env.GOOGLE_DRIVE_BACKUP_ENABLED === 'true'
-        ? [
-            Path.resolve(
-              __dirname,
-              '../modules/google-drive-backup/frontend/js/components/google-drive-widget'
-            ),
-          ]
-        : []),
+      // Registered unconditionally so the widget is always present in the
+      // frontend bundle. Whether it renders is decided at runtime by the
+      // `ol-googleDriveBackupEnabled` meta flag (see google-drive-widget.tsx),
+      // because this list is baked in when webpack builds, not at runtime.
+      Path.resolve(
+        __dirname,
+        '../modules/google-drive-backup/frontend/js/components/google-drive-widget'
+      ),
     ],
     referenceLinkingWidgets: [
       Path.resolve(
