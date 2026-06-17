@@ -49,6 +49,11 @@ describe('GoogleDriveBackupManager', function () {
         getProject: sinon
           .stub()
           .resolves({ _id: ctx.projectId, name: 'My Paper', owner_ref: ctx.userId }),
+        // Sibling lookup used to disambiguate duplicate names; single project
+        // here means no clash, so a clean folder name is expected.
+        findAllUsersProjects: sinon
+          .stub()
+          .resolves({ owned: [{ _id: ctx.projectId, name: 'My Paper' }] }),
       },
     }
     vi.doMock('../../../../../app/src/Features/Project/ProjectGetter.mjs', () => ({
@@ -120,9 +125,10 @@ describe('GoogleDriveBackupManager', function () {
       expect(ctx.GoogleDriveApiClient.ensureFolder.firstCall.args[1]).to.equal(
         'Overleaf ITKMITL'
       )
+      // No duplicate name -> clean folder name, no id suffix.
       expect(
         ctx.GoogleDriveApiClient.ensureFolder.secondCall.args[1]
-      ).to.equal(`My Paper (${ctx.projectId})`)
+      ).to.equal('My Paper')
 
       // doc uploaded into the project folder
       const uploadArgs = ctx.GoogleDriveApiClient.upsertFile.firstCall.args[1]
@@ -131,6 +137,25 @@ describe('GoogleDriveBackupManager', function () {
 
       // compile did not succeed -> no pdf
       expect(status).to.equal('success-no-pdf')
+    })
+
+    it('disambiguates the folder name only when a sibling shares it', async function (ctx) {
+      // Two owned projects with the same name -> id suffix expected.
+      ctx.ProjectGetter.promises.findAllUsersProjects.resolves({
+        owned: [
+          { _id: ctx.projectId, name: 'My Paper' },
+          { _id: 'other-789', name: 'My Paper' },
+        ],
+      })
+
+      await ctx.GoogleDriveBackupManager.backupProject(
+        ctx.userId,
+        ctx.projectId
+      )
+
+      expect(
+        ctx.GoogleDriveApiClient.ensureFolder.secondCall.args[1]
+      ).to.equal(`My Paper (${ctx.projectId})`)
     })
 
     it('uploads output.pdf when the compile succeeds', async function (ctx) {

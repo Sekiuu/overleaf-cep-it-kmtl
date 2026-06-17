@@ -31,12 +31,52 @@ function _sanitizeName(name) {
 }
 
 /**
- * Per-project folder name. The project id is appended so that two projects with
- * the same title never share a Drive folder, and so re-runs after a rename still
- * resolve to the same folder (overwrite-in-place).
+ * Per-project Drive folder name. Normally just the (sanitized) project name, so
+ * the folder is clean. Only when the same name is shared by another of the
+ * user's projects do we append the project id to disambiguate, ensuring the two
+ * never share a folder.
  */
-function _projectFolderName(project) {
-  return `${_sanitizeName(project.name)} (${project._id})`
+function _folderName(project, hasNameClash) {
+  const sanitized = _sanitizeName(project.name)
+  return hasNameClash ? `${sanitized} (${project._id})` : sanitized
+}
+
+/**
+ * Build a map of projectId -> Drive folder name for a set of the user's
+ * projects, disambiguating only the names that collide (case-insensitive).
+ */
+function _buildFolderNameMap(projects) {
+  const counts = new Map()
+  for (const p of projects) {
+    const key = _sanitizeName(p.name).toLowerCase()
+    counts.set(key, (counts.get(key) || 0) + 1)
+  }
+  const map = new Map()
+  for (const p of projects) {
+    const key = _sanitizeName(p.name).toLowerCase()
+    map.set(p._id.toString(), _folderName(p, counts.get(key) > 1))
+  }
+  return map
+}
+
+/**
+ * Resolve a single project's folder name when its siblings aren't already
+ * known (standalone backupProject call): look up the owner's other projects and
+ * disambiguate only on a real name clash.
+ */
+async function _resolveFolderName(project) {
+  const sanitized = _sanitizeName(project.name)
+  const siblings = await ProjectGetter.promises.findAllUsersProjects(
+    project.owner_ref,
+    { name: 1 }
+  )
+  const owned = siblings?.owned || []
+  const clash = owned.some(
+    p =>
+      p._id.toString() !== project._id.toString() &&
+      _sanitizeName(p.name).toLowerCase() === sanitized.toLowerCase()
+  )
+  return _folderName(project, clash)
 }
 
 /**
@@ -178,11 +218,16 @@ async function _backupOutputPdf(
 /**
  * Back up a single project to the user's Google Drive.
  *
- * Layout:  Overleaf ITKMITL / <project name> (<projectId>) / <source files + output.pdf>
+ * Layout:  Overleaf ITKMITL / <project name> / <source files + output.pdf>
+ * (the folder name gets a " (<projectId>)" suffix only when another of the
+ * user's projects shares the same name).
+ *
+ * `options.folderName` lets a batch caller pass the pre-resolved name so the
+ * sibling lookup isn't repeated per project.
  *
  * Returns a status string: 'success' | 'success-no-pdf' | 'insufficient-space'.
  */
-async function backupProject(userId, projectId) {
+async function backupProject(userId, projectId, options = {}) {
   const refreshToken = await GoogleDriveTokenStore.getRefreshToken(userId)
   if (!refreshToken) {
     throw new GoogleDriveNotLinkedError()
@@ -208,13 +253,15 @@ async function backupProject(userId, projectId) {
     throw new OError('project not found', { projectId })
   }
 
+  const folderName = options.folderName || (await _resolveFolderName(project))
+
   const rootFolderId = await GoogleDriveApiClient.ensureFolder(
     accessToken,
     ROOT_FOLDER_NAME
   )
   const projectFolderId = await GoogleDriveApiClient.ensureFolder(
     accessToken,
-    _projectFolderName(project),
+    folderName,
     rootFolderId
   )
 
@@ -237,9 +284,13 @@ async function backupProject(userId, projectId) {
 async function backupAllProjectsForUser(userId) {
   const projects = await ProjectGetter.promises.findAllUsersProjects(userId, {
     _id: 1,
+    name: 1,
   })
   // findAllUsersProjects returns { owned, readAndWrite, ... }; only back up owned.
   const owned = projects?.owned || []
+  // Resolve folder names up front so duplicate names are disambiguated and the
+  // sibling lookup isn't repeated per project.
+  const folderNames = _buildFolderNameMap(owned)
 
   const results = []
   let sawInsufficientSpace = false
@@ -247,7 +298,9 @@ async function backupAllProjectsForUser(userId) {
 
   for (const project of owned) {
     try {
-      const status = await backupProject(userId, project._id)
+      const status = await backupProject(userId, project._id, {
+        folderName: folderNames.get(project._id.toString()),
+      })
       if (status === 'insufficient-space') {
         sawInsufficientSpace = true
         results.push({ projectId: project._id, status })
