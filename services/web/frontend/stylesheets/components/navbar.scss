@@ -58,6 +58,8 @@
       color: var(--navbar-title-color);
       text-decoration: none;
       align-self: center;
+      min-width: 0; // allow the title to shrink so ellipsis can apply
+      white-space: nowrap;
       text-overflow: ellipsis;
       overflow: hidden;
 
@@ -162,6 +164,27 @@
 @include media-breakpoint-only(lg) {
   :root {
     --navbar-btn-padding-h: #{$spacing-04};
+  }
+}
+
+// Scale the brand (logo + title) down on smaller screens so it never crowds
+// the rest of the navbar. Overriding the custom properties keeps dependent
+// offsets (e.g. .skip-to-content) in sync.
+@include media-breakpoint-down(md) {
+  .navbar-default {
+    --navbar-brand-width: 100px;
+    --navbar-title-font-size: var(--font-size-04);
+
+    .navbar-brand {
+      gap: var(--spacing-05);
+    }
+  }
+}
+
+@include media-breakpoint-down(sm) {
+  .navbar-default {
+    --navbar-brand-width: 72px;
+    --navbar-title-font-size: var(--font-size-03);
   }
 }
 
