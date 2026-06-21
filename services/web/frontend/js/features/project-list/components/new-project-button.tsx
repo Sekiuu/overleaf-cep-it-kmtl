@@ -184,24 +184,24 @@ function NewProjectButton({
             <DropdownItem
               onClick={e =>
                 handleModalMenuClick(e, {
-                  modalVariant: 'upload_project',
-                  dropdownMenuEvent: 'upload-project',
-                })
-              }
-            >
-              {t('upload_project')}
-            </DropdownItem>
-          </li>
-          <li role="none">
-            <DropdownItem
-              onClick={e =>
-                handleModalMenuClick(e, {
                   modalVariant: 'blank_project',
                   dropdownMenuEvent: 'blank-project',
                 })
               }
             >
               {t('blank_project')}
+            </DropdownItem>
+          </li>
+          <li role="none">
+            <DropdownItem
+              onClick={e =>
+                handleModalMenuClick(e, {
+                  modalVariant: 'upload_project',
+                  dropdownMenuEvent: 'upload-project',
+                })
+              }
+            >
+              {t('upload_project')}
             </DropdownItem>
           </li>
           {docxImportEnabled && (
