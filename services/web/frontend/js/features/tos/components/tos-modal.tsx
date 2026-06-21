@@ -15,14 +15,15 @@ import getMeta from '@/utils/meta'
 
 // Dummy placeholder Terms of Service text. Replace with the real terms.
 const TOS_PARAGRAPHS = [
-  'Lorem ipsum dolor sit amet, consectetur adipiscing elit. These Terms of Service ("Terms") govern your access to and use of this service. By using the service you agree to be bound by these Terms.',
-  '1. Acceptance of terms. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
-  '2. Use of the service. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. You agree to use the service only for lawful purposes and in accordance with these Terms.',
-  '3. User content. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. You retain ownership of any content you submit, post or display on or through the service.',
-  '4. Privacy. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.',
-  '5. Termination. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit. We may suspend or terminate your access to the service at any time, with or without cause.',
-  '6. Changes to these terms. At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium. We may revise these Terms from time to time and will notify you of material changes.',
-]
+  'ข้อตกลงการให้บริการ (Terms of Service) - Overleaf IT KMITL',
+  '1. การยอมรับข้อตกลง (Acceptance of Terms): การเข้าถึงและใช้งานระบบ Overleaf ของคณะเทคโนโลยีสารสนเทศ สจล. (IT KMITL) ถือว่าผู้ใช้งานตกลงและยอมรับที่จะปฏิบัติตามข้อตกลงการให้บริการฉบับนี้ หากคุณไม่ยินยอมตามเงื่อนไข โปรดงดเว้นการใช้งานระบบ',
+  '2. การใช้งานระบบและเทมเพลต (Use of the Service & Templates): ผู้ใช้งานตกลงที่จะใช้ระบบเพื่อวัตถุประสงค์ทางการศึกษา การวิจัย และถูกต้องตามกฎหมายรวมถึงระเบียบของสถาบันเท่านั้น ระบบได้จัดเตรียมเทมเพลตเอกสารเพื่ออำนวยความสะดวก ทั้งนี้ ผู้ใช้งานเป็นผู้รับผิดชอบในการตรวจสอบความถูกต้องของรูปแบบเอกสารขั้นสุดท้ายก่อนนำไปใช้งานจริง',
+  '3. เนื้อหาและลิขสิทธิ์ของผู้ใช้งาน (User Content & Ownership): ผู้ใช้งานยังคงเป็นเจ้าของลิขสิทธิ์ในเนื้อหา โค้ด LaTeX และข้อมูลใดๆ ที่ทำการสร้าง อัปโหลด หรือจัดเก็บไว้ในระบบอย่างสมบูรณ์ ทางผู้ดูแลระบบไม่มีสิทธิ์ในการนำข้อมูลไปทำซ้ำหรือแสวงหาผลประโยชน์อื่นใด',
+  '4. ระบบสำรองข้อมูล (Data Backup): เพื่อป้องกันการสูญหายของข้อมูล 1) Google Drive Backup: หากเปิดใช้งาน ถือว่ายินยอมให้ระบบเชื่อมต่อกับบัญชี Google Drive โดยระบบจะขอสิทธิ์เฉพาะการสร้างและอัปโหลดไฟล์โปรเจกต์เท่านั้น 2) NAS Backup (Upcoming Feature): ระบบอยู่ระหว่างการพัฒนากระบวนการสำรองข้อมูลไปยังเซิร์ฟเวอร์ NAS ภายในเครือข่ายของคณะฯ',
+  '5. ความเป็นส่วนตัวและข้อมูลส่วนบุคคล (Privacy): ข้อมูลโปรเจกต์และบัญชีผู้ใช้งานจะถูกจัดการด้วยความระมัดระวัง ข้อมูลที่เก็บรวบรวมผ่านระบบและการเชื่อมต่อ API จะถูกนำมาใช้เพื่อวัตถุประสงค์ในการให้บริการ การสำรองข้อมูล และปรับปรุงประสิทธิภาพของระบบเท่านั้น',
+  '6. การระงับการให้บริการ (Termination): ผู้ดูแลระบบขอสงวนสิทธิ์ในการระงับบัญชีหรือยกเลิกการเข้าถึงระบบ ในกรณีที่ตรวจพบการใช้งานที่ละเมิดข้อตกลง ก่อกวนระบบ ทำลายความปลอดภัย หรือใช้งานทรัพยากรเซิร์ฟเวอร์ในทางที่ผิด',
+  '7. การเปลี่ยนแปลงข้อตกลง (Changes to These Terms): ทางทีมพัฒนาอาจมีการปรับปรุงแก้ไขข้อตกลงการให้บริการเป็นครั้งคราว (เช่น เมื่อระบบ NAS Backup เปิดใช้งานอย่างเป็นทางการ) หากมีการเปลี่ยนแปลงที่มีนัยสำคัญ เราจะแจ้งให้ผู้ใช้งานทราบ'
+];
 
 export default function TosModal() {
   const { t } = useTranslation()
