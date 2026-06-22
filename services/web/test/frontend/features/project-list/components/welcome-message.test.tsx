@@ -44,8 +44,10 @@ describe('<WelcomeMessage />', function () {
 
     fireEvent.click(button)
 
-    screen.getByText('Blank project')
-    screen.getByText('Example project')
+    // Blank and Example project entries are intentionally hidden in this fork
+    expect(screen.queryByText('Blank project')).to.be.null
+    expect(screen.queryByText('Example project')).to.be.null
+
     screen.getByText('Upload project')
     screen.getByText('Import Word document')
     screen.getByText('Import from GitHub')
@@ -61,7 +63,7 @@ describe('<WelcomeMessage />', function () {
 
     fireEvent.click(button)
 
-    screen.getByText('Blank project')
+    screen.getByText('Upload project')
     expect(screen.queryByText('Import Word document')).to.not.exist
   })
 
@@ -80,9 +82,11 @@ describe('<WelcomeMessage />', function () {
     })
 
     fireEvent.click(button)
+    // Blank and Example project entries are intentionally hidden in this fork
+    expect(screen.queryByText('Blank project')).to.be.null
+    expect(screen.queryByText('Example project')).to.be.null
+
     // static menu
-    screen.getByText('Blank project')
-    screen.getByText('Example project')
     screen.getByText('Upload project')
     screen.getByText('Import from GitHub')
 
@@ -108,10 +112,36 @@ describe('<WelcomeMessage />', function () {
 
     fireEvent.click(button)
 
-    screen.getByText('Blank project')
-    screen.getByText('Example project')
+    // Blank and Example project entries are intentionally hidden in this fork
+    expect(screen.queryByText('Blank project')).to.be.null
+    expect(screen.queryByText('Example project')).to.be.null
+
     screen.getByText('Upload project')
     screen.getByText('Import from GitHub')
+  })
+
+  it('shows the All templates link in the dropdown', function () {
+    Object.assign(getMeta('ol-ExposedSettings'), {
+      templateLinks: [
+        {
+          name: 'All templates',
+          url: '/templates/all',
+        },
+      ],
+    })
+
+    render(<WelcomeMessage />)
+
+    const button = screen.getByRole('button', {
+      name: 'Create a new project',
+    })
+
+    fireEvent.click(button)
+
+    const allTemplates = screen.getByRole('menuitem', {
+      name: 'All templates Template',
+    })
+    expect(allTemplates.getAttribute('href')).to.equal('/templates/all')
   })
 
   it('shows correct link for latex tutorial menu', function () {
@@ -159,8 +189,10 @@ describe('<WelcomeMessage />', function () {
 
       fireEvent.click(button)
 
-      screen.getByText('Blank project')
-      screen.getByText('Example project')
+      // Blank and Example project entries are intentionally hidden in this fork
+      expect(screen.queryByText('Blank project')).to.be.null
+      expect(screen.queryByText('Example project')).to.be.null
+
       screen.getByText('Upload project')
       expect(screen.queryByText('Import from GitHub')).to.not.exist
     })

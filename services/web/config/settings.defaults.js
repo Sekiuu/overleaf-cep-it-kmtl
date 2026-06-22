@@ -475,6 +475,42 @@ module.exports = {
     ','
   ),
 
+  // Restrict which email domains can be invited to projects as collaborators
+  // (comma-separated). Set to an empty string to allow any domain.
+  allowedInviteDomains: (process.env.OVERLEAF_ALLOWED_INVITE_DOMAINS === undefined
+    ? 'kmitl.ac.th,it.kmitl.ac.th'
+    : process.env.OVERLEAF_ALLOWED_INVITE_DOMAINS
+  )
+    .split(',')
+    .map(d => d.trim().replace(/^@/, '').toLowerCase())
+    .filter(Boolean),
+
+  // Google Drive backup module (services/web/modules/google-drive-backup).
+  // Periodically mirrors each linked user's projects (source files + output.pdf)
+  // into an "Overleaf ITKMITL" folder on their own Google Drive.
+  googleDriveBackup: {
+    enabled: process.env.GOOGLE_DRIVE_BACKUP_ENABLED === 'true',
+    // Set to 'false' on additional web instances so only one runs the scheduler.
+    schedulerEnabled: process.env.GOOGLE_DRIVE_BACKUP_SCHEDULER !== 'false',
+    clientId: process.env.GOOGLE_DRIVE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_DRIVE_CLIENT_SECRET,
+    redirectUri: process.env.GOOGLE_DRIVE_REDIRECT_URI,
+    // Only allow linking Google accounts in these Workspace domains
+    // (comma-separated). Set to an empty string to allow any Google account.
+    allowedDomains: (process.env.GOOGLE_DRIVE_ALLOWED_DOMAINS === undefined
+      ? 'kmitl.ac.th,it.kmitl.ac.th'
+      : process.env.GOOGLE_DRIVE_ALLOWED_DOMAINS
+    )
+      .split(',')
+      .map(d => d.trim().replace(/^@/, '').toLowerCase())
+      .filter(Boolean),
+    intervalMs:
+      parseInt(process.env.GOOGLE_DRIVE_BACKUP_INTERVAL_MS, 10) ||
+      24 * 60 * 60 * 1000,
+    minFreeBytes:
+      parseInt(process.env.GOOGLE_DRIVE_MIN_FREE_BYTES, 10) || 1073741824,
+  },
+
   // i18n
   // ------
   //
@@ -1066,7 +1102,16 @@ module.exports = {
     mainEditorLayoutPanels: [],
     langFeedbackLinkingWidgets: [],
     labsExperiments: [],
-    integrationLinkingWidgets: [],
+    integrationLinkingWidgets: [
+      // Registered unconditionally so the widget is always present in the
+      // frontend bundle. Whether it renders is decided at runtime by the
+      // `ol-googleDriveBackupEnabled` meta flag (see google-drive-widget.tsx),
+      // because this list is baked in when webpack builds, not at runtime.
+      Path.resolve(
+        __dirname,
+        '../modules/google-drive-backup/frontend/js/components/google-drive-widget'
+      ),
+    ],
     referenceLinkingWidgets: [
       Path.resolve(
         __dirname,
@@ -1174,6 +1219,7 @@ module.exports = {
     'template-gallery',
     'git-bridge',
     'zotero',
+    'google-drive-backup',
   ],
   viewIncludes: {},
 

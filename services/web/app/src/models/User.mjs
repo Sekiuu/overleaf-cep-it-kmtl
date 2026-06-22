@@ -207,6 +207,9 @@ export const UserSchema = new Schema(
       mendeley: Schema.Types.Mixed,
       zotero: Schema.Types.Mixed,
       papers: Schema.Types.Mixed,
+      // Managed by the google-drive-backup module: holds the encrypted Google
+      // OAuth refresh token plus backup status metadata.
+      googleDrive: Schema.Types.Mixed,
     },
     writefull: {
       // whether we have attached an autocreated account or autoloading for the user

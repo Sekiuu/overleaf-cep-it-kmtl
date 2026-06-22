@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
+import getMeta from '@/utils/meta'
 import { debugConsole } from '@/utils/debugging'
 import { postJSON, getJSON } from '@/infrastructure/fetch-json'
 import useAsync from '@/shared/hooks/use-async'
@@ -12,6 +13,9 @@ import { Token } from '../../../../types/api'
 
 export default function GitIntegrationWidget() {
   const { t } = useTranslation()
+  // The widget is bundled unconditionally (registered in settings.defaults.js);
+  // only render it when the git-bridge feature is actually enabled at runtime.
+  const gitBridgeEnabled = getMeta('ol-gitBridgeEnabled')
 
   const [tokens, setTokens] = useState<Token[]>([])
   const [showExposeTokenModal, setShowExposeTokenModal] = useState(false)
@@ -20,10 +24,11 @@ export default function GitIntegrationWidget() {
   const { runAsync, isLoading, isError, reset } = useAsync()
 
   useEffect(() => {
+    if (!gitBridgeEnabled) return
     runAsync(getJSON('/git-bridge/personal-access-tokens'))
       .then((data: Token[]) => setTokens(data))
       .catch(debugConsole.error)
-  }, [runAsync])
+  }, [runAsync, gitBridgeEnabled])
 
   const handleCreateToken = useCallback(() => {
     runAsync(postJSON('/git-bridge/personal-access-tokens'))
@@ -44,6 +49,12 @@ export default function GitIntegrationWidget() {
   }, [])
 
   const tokenCount = tokens.length
+
+  // Feature turned off at runtime: render nothing so the widget doesn't appear
+  // in the Project synchronisation section.
+  if (!gitBridgeEnabled) {
+    return null
+  }
 
   return (
     <div className="settings-widget-container">

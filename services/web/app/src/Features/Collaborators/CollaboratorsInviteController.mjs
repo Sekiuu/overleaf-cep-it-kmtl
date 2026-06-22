@@ -56,6 +56,15 @@ async function _checkShouldInviteEmail(email) {
   }
 }
 
+function _isInviteEmailDomainAllowed(email) {
+  const allowedDomains = Settings.allowedInviteDomains || []
+  if (allowedDomains.length === 0) {
+    return true
+  }
+  const domain = (email || '').split('@')[1]?.toLowerCase()
+  return allowedDomains.includes(domain)
+}
+
 async function _checkRateLimit(userId) {
   let collabLimit =
     await LimitationsManager.promises.allowedNumberOfCollaboratorsForUser(
@@ -138,6 +147,14 @@ async function inviteToProject(req, res) {
   if (email == null || email === '') {
     logger.debug({ projectId, email, sendingUserId }, 'invalid email address')
     return res.status(400).json({ errorReason: 'invalid_email' })
+  }
+
+  if (!CollaboratorsInviteController._isInviteEmailDomainAllowed(email)) {
+    logger.debug(
+      { projectId, email, sendingUserId },
+      'invite email domain is not allowed'
+    )
+    return res.status(400).json({ errorReason: 'invalid_email_domain' })
   }
 
   const underRateLimit =
@@ -432,6 +449,7 @@ const CollaboratorsInviteController = {
   acceptInvite: expressify(acceptInvite),
   _checkShouldInviteEmail,
   _checkRateLimit,
+  _isInviteEmailDomainAllowed,
 }
 
 export default CollaboratorsInviteController
