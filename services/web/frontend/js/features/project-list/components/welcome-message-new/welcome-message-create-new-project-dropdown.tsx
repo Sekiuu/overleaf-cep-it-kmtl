@@ -125,6 +125,18 @@ function WelcomeMessageCreateNewProjectDropdown({
       <DropdownMenu flip={false} className="create-new-project-dropdown">
         <li role="none">
           <DropdownItem
+            onClick={e =>
+              handleModalMenuClick(e, {
+                modalVariant: 'blank_project',
+                dropdownMenuEvent: 'blank-project',
+              })
+            }
+          >
+            {t('blank_project')}
+          </DropdownItem>
+        </li>
+        <li role="none">
+          <DropdownItem
             as="button"
             onClick={e =>
               handleDropdownItemClick(e, 'upload_project', 'upload-project')
