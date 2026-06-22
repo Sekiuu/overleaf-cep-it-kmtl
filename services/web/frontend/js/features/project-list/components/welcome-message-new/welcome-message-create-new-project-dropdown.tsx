@@ -125,12 +125,11 @@ function WelcomeMessageCreateNewProjectDropdown({
       <DropdownMenu flip={false} className="create-new-project-dropdown">
         <li role="none">
           <DropdownItem
+            as="button"
             onClick={e =>
-              handleModalMenuClick(e, {
-                modalVariant: 'blank_project',
-                dropdownMenuEvent: 'blank-project',
-              })
+              handleDropdownItemClick(e, 'blank_project', 'blank-project')
             }
+            tabIndex={-1}
           >
             {t('blank_project')}
           </DropdownItem>
