@@ -1,0 +1,43 @@
+.storage-quota {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-04);
+  padding: var(--spacing-06);
+  background-color: var(--bg-light-primary);
+  border: 1px solid var(--border-divider);
+  border-radius: var(--border-radius-medium);
+}
+
+.storage-quota-title {
+  @include heading-sm;
+
+  margin: 0;
+  color: var(--content-primary);
+}
+
+.storage-quota-track {
+  position: relative;
+  width: 100%;
+  height: var(--spacing-04);
+  overflow: hidden;
+  background-color: var(--neutral-20);
+  border-radius: var(--border-radius-full, 9999px);
+}
+
+.storage-quota-fill {
+  height: 100%;
+  background-color: var(--green-50);
+  border-radius: inherit;
+  transition: width 0.4s ease;
+}
+
+.storage-quota-track--near-limit .storage-quota-fill {
+  background-color: var(--yellow-50);
+}
+
+.storage-quota-usage {
+  @include body-sm;
+
+  margin: 0;
+  color: var(--content-secondary);
+}

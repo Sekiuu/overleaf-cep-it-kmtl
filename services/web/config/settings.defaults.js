@@ -381,6 +381,13 @@ module.exports = {
   maxUploadSize: process.env.MAX_UPLOAD_SIZE
     ? parseInt(process.env.MAX_UPLOAD_SIZE, 10) * 1024 * 1024
     : 50 * 1024 * 1024, // 50 MB
+
+  // Total storage (in bytes) a non-admin user may use across all the projects
+  // they own. Set to -1 to disable the limit. Can be overridden per-user via
+  // user.features.storageLimitBytes.
+  defaultStorageLimitBytes: process.env.DEFAULT_STORAGE_LIMIT_BYTES
+    ? parseInt(process.env.DEFAULT_STORAGE_LIMIT_BYTES, 10)
+    : 500 * 1024 * 1024, // 500 MB
   multerOptions: {
     preservePath: process.env.MULTER_PRESERVE_PATH,
   },
@@ -426,6 +433,9 @@ module.exports = {
     compileGroup: 'standard',
     references: true,
     trackChanges: true,
+    storageLimitBytes: process.env.DEFAULT_STORAGE_LIMIT_BYTES
+      ? parseInt(process.env.DEFAULT_STORAGE_LIMIT_BYTES, 10)
+      : 500 * 1024 * 1024, // 500 MB
   }),
 
   // featuresEpoch: 'YYYY-MM-DD',

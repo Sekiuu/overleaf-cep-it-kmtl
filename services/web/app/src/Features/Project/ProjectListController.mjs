@@ -22,6 +22,7 @@ import { OError, V1ConnectionError } from '../Errors/Errors.js'
 import { User } from '../../models/User.mjs'
 import UserPrimaryEmailCheckHandler from '../User/UserPrimaryEmailCheckHandler.mjs'
 import UserController from '../User/UserController.mjs'
+import StorageQuotaManager from '../StorageQuota/StorageQuotaManager.mjs'
 import NotificationsBuilder from '../Notifications/NotificationsBuilder.mjs'
 import GeoIpLookup from '../../infrastructure/GeoIpLookup.mjs'
 import SplitTestHandler from '../SplitTests/SplitTestHandler.mjs'
@@ -581,9 +582,25 @@ async function projectListPage(req, res, next) {
       logger.error({ err }, 'Failed to set user properties for customer.io')
     })
 
+  // Storage quota widget data for the dashboard sidebar. Computed defensively
+  // so a slow/unavailable history service never breaks the project list page.
+  // Returns null for admins / unlimited users so the widget is hidden.
+  let storageQuota = null
+  try {
+    const limitBytes = StorageQuotaManager.getUserStorageLimitBytes(user)
+    if (limitBytes >= 0) {
+      const usedBytes =
+        await StorageQuotaManager.promises.getUserStorageUsageBytes(userId)
+      storageQuota = { usedBytes, limitBytes }
+    }
+  } catch (err) {
+    logger.warn({ err, userId }, 'failed to compute storage quota for dashboard')
+  }
+
   res.render('project/list-react', {
     title: 'your_projects',
     usersBestSubscription,
+    storageQuota,
     notifications,
     notificationsInstitution,
     user,

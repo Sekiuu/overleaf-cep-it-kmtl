@@ -17,6 +17,7 @@ import { DuplicateNameError, FileTooLargeError } from '../Errors/Errors.js'
 import DocumentConversionManager from './DocumentConversionManager.mjs'
 import ProjectOptionsHandler from '../Project/ProjectOptionsHandler.mjs'
 import AnalyticsManager from '../Analytics/AnalyticsManager.mjs'
+import StorageQuotaManager from '../StorageQuota/StorageQuotaManager.mjs'
 
 const defaultsDeep = lodash.defaultsDeep
 
@@ -66,6 +67,9 @@ function uploadProject(req, res, next) {
           })
         }
       } else {
+        StorageQuotaManager.promises
+          .clearUserStorageUsageCache(userId)
+          .catch(() => {})
         return res.json({ success: true, project_id: project._id })
       }
     }
@@ -163,6 +167,11 @@ async function uploadFile(req, res, next) {
           return res.status(422).json({ success: false })
         }
       } else {
+        // The upload changed the user's storage footprint; drop the cached
+        // usage so the next quota check recomputes it.
+        StorageQuotaManager.promises
+          .clearUserStorageUsageCache(userId)
+          .catch(() => {})
         return res.json({
           success: true,
           entity_id: entity?._id,
@@ -203,6 +212,9 @@ async function importDocument(req, res, next) {
           archivePath
         )
       await ProjectOptionsHandler.promises.setCompiler(project._id, 'lualatex')
+      StorageQuotaManager.promises
+        .clearUserStorageUsageCache(userId)
+        .catch(() => {})
       AnalyticsManager.recordEventForUserInBackground(
         userId,
         'convert-format',

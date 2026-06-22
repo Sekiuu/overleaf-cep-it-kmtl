@@ -1,6 +1,7 @@
 import AuthorizationMiddleware from '../Authorization/AuthorizationMiddleware.mjs'
 import AuthenticationController from '../Authentication/AuthenticationController.mjs'
 import ProjectUploadController from './ProjectUploadController.mjs'
+import StorageQuotaMiddleware from '../StorageQuota/StorageQuotaMiddleware.mjs'
 import { RateLimiter } from '../../infrastructure/RateLimiter.mjs'
 import RateLimiterMiddleware from '../Security/RateLimiterMiddleware.mjs'
 import Settings from '@overleaf/settings'
@@ -24,6 +25,7 @@ export default {
       AuthenticationController.requireLogin(),
       RateLimiterMiddleware.rateLimit(rateLimiters.projectUpload),
       ProjectUploadController.multerMiddleware,
+      StorageQuotaMiddleware.ensureUserHasStorageAvailable,
       ProjectUploadController.uploadProject
     )
 
@@ -33,6 +35,7 @@ export default {
         AuthenticationController.requireLogin(),
         RateLimiterMiddleware.rateLimit(rateLimiters.projectUpload),
         ProjectUploadController.multerMiddleware,
+        StorageQuotaMiddleware.ensureUserHasStorageAvailable,
         ProjectUploadController.importDocument
       )
       // Keep old route for backwards compatibility with old frontends that haven't reloaded
@@ -41,6 +44,7 @@ export default {
         AuthenticationController.requireLogin(),
         RateLimiterMiddleware.rateLimit(rateLimiters.projectUpload),
         ProjectUploadController.multerMiddleware,
+        StorageQuotaMiddleware.ensureUserHasStorageAvailable,
         (req, res, next) => {
           req.query.type = 'docx'
           next()
@@ -63,6 +67,7 @@ export default {
         AsyncLocalStorage.middleware,
         AuthorizationMiddleware.ensureUserCanWriteProjectContent,
         ProjectUploadController.multerMiddleware,
+        StorageQuotaMiddleware.ensureUserHasStorageAvailable,
         ProjectUploadController.uploadFile
       )
     } else {
@@ -73,6 +78,7 @@ export default {
         AsyncLocalStorage.middleware,
         AuthorizationMiddleware.ensureUserCanWriteProjectContent,
         ProjectUploadController.multerMiddleware,
+        StorageQuotaMiddleware.ensureUserHasStorageAvailable,
         ProjectUploadController.uploadFile
       )
     }

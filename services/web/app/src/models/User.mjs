@@ -157,6 +157,10 @@ export const UserSchema = new Schema(
         default: false,
       },
       aiUsageQuota: { type: String, default: 'basic' },
+      storageLimitBytes: {
+        type: Number,
+        default: Settings.defaultFeatures.storageLimitBytes,
+      },
     },
     featuresOverrides: [
       {

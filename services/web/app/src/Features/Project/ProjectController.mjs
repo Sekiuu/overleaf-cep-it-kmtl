@@ -43,6 +43,8 @@ import AdminAuthorizationHelper from '../Helpers/AdminAuthorizationHelper.mjs'
 import InstitutionsFeatures from '../Institutions/InstitutionsFeatures.mjs'
 import InstitutionsGetter from '../Institutions/InstitutionsGetter.mjs'
 import ProjectAuditLogHandler from './ProjectAuditLogHandler.mjs'
+import StorageQuotaManager from '../StorageQuota/StorageQuotaManager.mjs'
+import Errors from '../Errors/Errors.js'
 import PublicAccessLevels from '../Authorization/PublicAccessLevels.mjs'
 import TagsHandler from '../Tags/TagsHandler.mjs'
 import TutorialHandler from '../Tutorial/TutorialHandler.mjs'
@@ -322,6 +324,20 @@ const _ProjectController = {
     const projectName =
       req.body.projectName != null ? req.body.projectName.trim() : undefined
     const { template } = req.body
+
+    try {
+      await StorageQuotaManager.promises.assertUserHasStorageAvailable(userId)
+    } catch (err) {
+      if (err instanceof Errors.StorageQuotaExceededError) {
+        return res.status(422).json({
+          message: {
+            key: 'user_storage_quota_exceeded',
+            text: req.i18n.translate('user_storage_quota_exceeded'),
+          },
+        })
+      }
+      throw err
+    }
 
     const project = await (template === 'example'
       ? ProjectCreationHandler.promises.createExampleProject(

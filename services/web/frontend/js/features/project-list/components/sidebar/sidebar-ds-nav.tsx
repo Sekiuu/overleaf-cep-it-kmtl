@@ -3,6 +3,7 @@ import classnames from 'classnames'
 import NewProjectButton from '../new-project-button'
 import SidebarFilters from './sidebar-filters'
 import AddAffiliation, { useAddAffiliation } from '../add-affiliation'
+import StorageQuotaWidget from '../storage-quota-widget'
 import { usePersistedResize } from '@/shared/hooks/use-resize'
 import { useScrolled } from '@/features/project-list/components/sidebar/use-scroll'
 import { SurveyWidgetDsNav } from '@/features/project-list/components/survey-widget-ds-nav'
@@ -58,6 +59,7 @@ function SidebarDsNav() {
           <SidebarFilters />
           {showAddAffiliationWidget && <hr />}
           <AddAffiliation />
+          <StorageQuotaWidget />
         </div>
       </nav>
       <div

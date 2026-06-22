@@ -51,6 +51,12 @@ class UnsupportedFileTypeError extends BackwardCompatibleError {}
 
 class FileTooLargeError extends BackwardCompatibleError {}
 
+class StorageQuotaExceededError extends OError {
+  get i18nKey() {
+    return 'user_storage_quota_exceeded'
+  }
+}
+
 class UnsupportedExportRecordsError extends BackwardCompatibleError {}
 
 class V1HistoryNotSyncedError extends BackwardCompatibleError {}
@@ -390,6 +396,7 @@ module.exports = {
   InvalidNameError,
   UnsupportedFileTypeError,
   FileTooLargeError,
+  StorageQuotaExceededError,
   UnsupportedExportRecordsError,
   V1HistoryNotSyncedError,
   ProjectHistoryDisabledError,

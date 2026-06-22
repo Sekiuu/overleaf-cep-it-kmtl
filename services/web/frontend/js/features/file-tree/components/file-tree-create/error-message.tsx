@@ -77,6 +77,11 @@ export default function ErrorMessage({
           </DangerMessage>
         )
 
+      case 'user_storage_quota_exceeded':
+        return (
+          <DangerMessage>{t('user_storage_quota_exceeded')}</DangerMessage>
+        )
+
       case 'rate-limit-hit':
         return (
           <DangerMessage>

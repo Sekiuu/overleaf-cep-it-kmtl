@@ -327,6 +327,7 @@ export interface Meta {
     groupSSO?: boolean
     domainCapture?: boolean
   }
+  'ol-storageQuota': { usedBytes: number; limitBytes: number } | undefined
   'ol-subscriptionId': string
   'ol-subscriptionPaymentErrorCode': string | null
   'ol-suggestedLanguage': SuggestedLanguage | undefined
